@@ -1,0 +1,4 @@
+export enum EventStoreEventName {
+  JOB_CREATED_EVENT = 'JOB_CREATED_EVENT',
+  STEP_PROCESSED_EVENT = 'STEP_PROCESSED_EVENT',
+}

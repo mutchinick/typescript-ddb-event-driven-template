@@ -129,6 +129,4 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# For local notes I keep
-_local
-__local
+.build
