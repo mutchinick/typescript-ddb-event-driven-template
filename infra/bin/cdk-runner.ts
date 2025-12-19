@@ -189,7 +189,16 @@ function writeOutputsToEnvFiles(outputsFilePath: string, deploymentPrefix: strin
   envFilesConfig.forEach(({ envFilePath, envVariables }) => {
     let envFileContents = ''
     envVariables.forEach(({ cdkOutputName, envVarName }) => {
-      const raw = outputs[cdkOutputName]
+      // FIXME: This substring matching approach is unsafe and can return false positives.
+      // After changing CDK construct scope to `this` for better hierarchy, output keys now include
+      // the full construct path (e.g., "templateDdbEventsDevTestTemplateServiceTemplateDdbEventsDev...HttpApiUrl{hash}").
+      // Using `.includes()` can match multiple outputs if similar names exist, doesn't validate uniqueness,
+      // and doesn't handle the CDK hash suffix properly. Should implement a safer pattern that:
+      // 1. Matches the exact expected construct path structure
+      // 2. Validates exactly one match is found
+      // 3. Handles CDK's hash suffix pattern
+      // 4. Works across different environments/projects without collisions
+      const raw = Object.entries(outputs).find(([key]) => key.includes(cdkOutputName))?.[1]
       const cdkOutputValue = raw == null ? '' : String(raw)
       if (cdkOutputValue) {
         const envVarValue = cdkOutputValue.endsWith('/') ? cdkOutputValue.slice(0, -1) : cdkOutputValue

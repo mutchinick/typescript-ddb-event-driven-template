@@ -23,7 +23,7 @@ export class CreateJobApiLambdaConstruct extends Construct {
    */
   constructor(scope: Construct, id: string, props: ICreateJobApiLambdaConstructProps) {
     super(scope, id)
-    const lambdaFunc = this.createCreateJobApiLambdaFunction(scope, id, props.dynamoDbTable)
+    const lambdaFunc = this.createCreateJobApiLambdaFunction(this, id, props.dynamoDbTable)
     this.createCreateJobApiLambdaIntegration(id, lambdaFunc, props.httpApi)
   }
 

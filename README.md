@@ -18,43 +18,100 @@ I use it in some projects like:
 
 ---
 
+## Notes
+
+Since December 2024, I've been experimenting with Cursor to add events to the workflow. It understands the architecture well and has been helpful in implementing new features like the `ListJobEventsApi` endpoint and other events to the workflow like TaskFooExecutedEvent, JobFinalizedEvent, etc.
+
+---
+
 ## Architecture
 
 Event-driven system using AWS serverless services with Event Sourcing pattern. Application state changes are stored as immutable events in DynamoDB, streamed through EventBridge, and processed asynchronously by Lambda workers.
 
-### Flow
+### Event Flow
 
 ```mermaid
 graph TB
-    subgraph "Event Flow"
-        Event1[JOB_CREATED_EVENT]
-        Event2[STEP_PROCESSED_EVENT]
-    end
+    Event1[JOB_CREATED_EVENT] --> Event2[STEP_PROCESSED_EVENT]
+    Event2 --> Event3[TASK_FOO_EXECUTED_EVENT]
+    Event2 --> Event3b[TASK_QUX_EXECUTED_EVENT]
+    Event2 --> Event3c[TASK_BAR_EXECUTED_EVENT]
+    Event3 --> Event4[ALL_TASKS_COMPLETED_EVENT]
+    Event3b --> Event4
+    Event3c --> Event4
+    Event4 --> Event5[JOB_FINALIZED_EVENT]
+```
 
+### Infrastructure Flow
+
+> **Note**: Dead Letter Queues (DLQs) have been removed from this diagram to simplify visibility. Each SQS queue in the system has an associated DLQ for error handling.
+>
+> **Note**: The DynamoDB Event Store boxes marked with \* represent the same resource, duplicated in the diagram to simplify visibility and reduce line crossings.
+
+```mermaid
+graph TB
     Client[REST Client] --> API[CreateJob API Gateway]
     API --> Lambda1[CreateJob Lambda]
-    Lambda1 --> DDB[DynamoDB Event Store]
+    Lambda1 --> DDB1[DynamoDB Event Store *]
 
-    DDB --> Stream[DynamoDB Streams]
+    Client2[REST Client] --> API2[ListJobEvents API Gateway]
+    API2 --> Lambda2[ListJobEvents Lambda]
+    Lambda2 --> DDB1
+
+    DDB1 --> Stream[DynamoDB Streams]
     Stream --> Pipe[EventBridge Pipe]
     Pipe --> EB[EventBridge Bus]
 
-    EB --> Rule[EventBridge Rule]
-    Rule --> SQS[SQS Queue]
-    SQS --> Lambda2[ProcessStep Lambda]
-    Lambda2 --> DDB
+    EB --> Rule1[EventBridge Rule 1]
+    Rule1 --> SQS1[SQS Queue 1]
+    SQS1 --> Lambda3[ProcessStep Lambda]
+    Lambda3 --> DDB2[DynamoDB Event Store *]
 
-    SQS --> DLQ[Dead Letter Queue]
+    EB --> Rule2[EventBridge Rule 2]
+    Rule2 --> SQS2[SQS Queue 2]
+    SQS2 --> Lambda4[ExecuteTaskFoo Lambda]
+    Lambda4 --> DDB2
+
+    EB --> Rule3[EventBridge Rule 3]
+    Rule3 --> SQS3[SQS Queue 3]
+    SQS3 --> Lambda5[ExecuteTaskQux Lambda]
+    Lambda5 --> DDB2
+
+    EB --> Rule4[EventBridge Rule 4]
+    Rule4 --> SQS4[SQS Queue 4]
+    SQS4 --> Lambda6[ExecuteTaskBar Lambda]
+    Lambda6 --> DDB2
+
+    EB --> Rule5[EventBridge Rule 5]
+    Rule5 --> SQS5[SQS Queue 5]
+    SQS5 --> Lambda7[CompleteAllTasks Lambda]
+    Lambda7 --> DDB2
+
+    EB --> Rule6[EventBridge Rule 6]
+    Rule6 --> SQS6[SQS Queue 6]
+    SQS6 --> Lambda8[FinalizeJob Lambda]
+    Lambda8 --> DDB2
+
+    classDef eventStore fill:#e1f5ff,stroke:#0288d1,stroke-width:3px,color:#000
+    class DDB1,DDB2 eventStore
 ```
 
 ### Basic steps explained
 
-1. **API Request**: Client creates job via REST API
+1. **API Request**: Client creates job via REST API (`/api/v1/test-template-service/createJob`)
 2. **Event Storage**: Lambda stores `JOB_CREATED_EVENT` in DynamoDB using `EventStoreClient`
 3. **Stream Processing**: DynamoDB Streams captures event, forwards via EventBridge Pipe
-4. **Event Routing**: EventBridge Rule routes event to SQS queue
-5. **Worker Processing**: Lambda polls SQS, uses `EventStoreEventBuilder` to reconstitute event
-6. **Continue Workflow**: Worker creates `STEP_PROCESSED_EVENT`, cycle continues
+4. **Event Routing**: EventBridge Rules route events to SQS queues based on event type
+5. **Worker Processing**: Lambda workers poll SQS, use `EventStoreEventBuilder` to reconstitute events
+6. **Event Chain**:
+   - `ProcessStepWorker` listens to `JOB_CREATED_EVENT` → produces `STEP_PROCESSED_EVENT`
+   - `ExecuteTaskFooWorker` listens to `STEP_PROCESSED_EVENT` → produces `TASK_FOO_EXECUTED_EVENT`
+   - `ExecuteTaskQuxWorker` listens to `STEP_PROCESSED_EVENT` → produces `TASK_QUX_EXECUTED_EVENT`
+   - `ExecuteTaskBarWorker` listens to `STEP_PROCESSED_EVENT` → produces `TASK_BAR_EXECUTED_EVENT`
+   - `CompleteAllTasksWorker` listens to `TASK_FOO_EXECUTED_EVENT`, `TASK_QUX_EXECUTED_EVENT`, `TASK_BAR_EXECUTED_EVENT` → produces `ALL_TASKS_COMPLETED_EVENT` (only when all three events have been produced)
+   - `FinalizeJobWorker` listens to `ALL_TASKS_COMPLETED_EVENT` → produces `JOB_FINALIZED_EVENT`
+7. **Workflow Continues**: Each worker processes its event and publishes new events, creating an event-driven workflow chain
+8. **Query Events**: Client can query all events for a job via REST API (`/api/v1/test-template-service/listJobEvents`)
 
 ## Core Components
 
@@ -108,27 +165,66 @@ Basically the Event Store and the Event-Driver
 │   └── test-template-service/                          # Example service
 │       ├── events/                                     # Domain events
 │       │   ├── JobCreatedEvent.ts
-│       │   └── StepProcessedEvent.ts
+│       │   ├── StepProcessedEvent.ts
+│       │   ├── TaskFooExecutedEvent.ts
+│       │   ├── TaskQuxExecutedEvent.ts
+│       │   ├── TaskBarExecutedEvent.ts
+│       │   ├── AllTasksCompletedEvent.ts
+│       │   └── JobFinalizedEvent.ts
 │       ├── CreateJobApi/                               # API endpoint
 │       │   ├── CreateJobApiController/
 │       │   ├── CreateJobApiService/
 │       │   └── model/
+│       ├── ListJobEventsApi/                           # API endpoint
+│       │   ├── ListJobEventsApiController/
+│       │   ├── ListJobEventsApiService/
+│       │   └── model/
 │       ├── ProcessStepWorker/                          # Event processor
 │       │   ├── ProcessStepWorkerController/
 │       │   └── ProcessStepWorkerService/
+│       ├── ExecuteTaskFooWorker/                       # Event processor
+│       │   ├── ExecuteTaskFooWorkerController/
+│       │   └── ExecuteTaskFooWorkerService/
+│       ├── ExecuteTaskQuxWorker/                       # Event processor
+│       │   ├── ExecuteTaskQuxWorkerController/
+│       │   └── ExecuteTaskQuxWorkerService/
+│       ├── ExecuteTaskBarWorker/                       # Event processor
+│       │   ├── ExecuteTaskBarWorkerController/
+│       │   └── ExecuteTaskBarWorkerService/
+│       ├── CompleteAllTasksWorker/                     # Event processor
+│       │   ├── CompleteAllTasksWorkerController/
+│       │   └── CompleteAllTasksWorkerService/
+│       ├── FinalizeJobWorker/                          # Event processor
+│       │   ├── FinalizeJobWorkerController/
+│       │   └── FinalizeJobWorkerService/
 │       └── handlers/                                   # Lambda entry points
 │           ├── createJobApi.ts
-│           └── processStepWorker.ts
+│           ├── listJobEventsApi.ts
+│           ├── processStepWorker.ts
+│           ├── executeTaskFooWorker.ts
+│           ├── executeTaskQuxWorker.ts
+│           ├── executeTaskBarWorker.ts
+│           ├── completeAllTasksWorker.ts
+│           └── finalizeJobWorker.ts
 ├── infra/lib/
 │   ├── common/                                         # Shared infrastructure
 │   │   ├── DynamoDbConstruct.ts                        # Event store table
 │   │   └── EventBusConstruct.ts                        # EventBridge setup
 │   └── test-template-service/                          # Service infrastructure
 │       ├── CreateJobApiLambdaConstruct.ts
+│       ├── ListJobEventsApiLambdaConstruct.ts
 │       ├── ProcessStepWorkerConstruct.ts
+│       ├── ExecuteTaskFooWorkerConstruct.ts
+│       ├── ExecuteTaskQuxWorkerConstruct.ts
+│       ├── ExecuteTaskBarWorkerConstruct.ts
+│       ├── CompleteAllTasksWorkerConstruct.ts
+│       ├── FinalizeJobWorkerConstruct.ts
 │       └── TestTemplateServiceMainConstruct.ts
 └── _restclient/                                        # Test examples
-    └── test-template-service/create-job.http           # Call Create Job Api
+    └── test-template-service/
+        ├── create-job.http                             # Call Create Job Api
+        ├── list-job-events.http                        # Call List Job Events Api
+        └── create-list-job-events.http                 # Create job and monitor events
 ```
 
 ## Tech Stack
@@ -156,7 +252,7 @@ export class JobCreatedEvent extends EventStoreEvent<JobCreatedEventData> {
   ): Success<JobCreatedEvent> | Failure<"InvalidArgumentsError"> {
     // Validate and create event with idempotency key and timestamp
     const validData = dataSchema.parse(eventData);
-    const idempotencyKey = `jobId:${eventData.jobId}:created:${eventData.created}`;
+    const idempotencyKey = `jobId:${eventData.jobId}`;
     return Result.makeSuccess(
       new JobCreatedEvent(validData, idempotencyKey, new Date().toISOString())
     );
@@ -512,7 +608,10 @@ Once deployed, test the event-driven workflow using the REST client examples in 
 #### Using VSCode REST Client
 
 1. Install the "REST Client" extension in VSCode
-2. Open [\_restclient/test-template-service/create-job.http](_restclient/test-template-service/create-job.http)
+2. Open any of the following files:
+   - [\_restclient/test-template-service/create-job.http](_restclient/test-template-service/create-job.http) - Create a job
+   - [\_restclient/test-template-service/list-job-events.http](_restclient/test-template-service/list-job-events.http) - List events for a job
+   - [\_restclient/test-template-service/create-list-job-events.http](_restclient/test-template-service/create-list-job-events.http) - Create a job and monitor events over time
 3. Click "Send Request" on any example
 
 #### Using cURL
@@ -523,6 +622,13 @@ source services/.env
 
 # Send Create Job Request
 curl -X POST "$TEST_TEMPLATE_SERVICE_API_BASE_URL/api/v1/test-template-service/createJob" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jobId": "ABC-1234"
+  }'
+
+# List Job Events Request
+curl -X POST "$TEST_TEMPLATE_SERVICE_API_BASE_URL/api/v1/test-template-service/listJobEvents" \
   -H "Content-Type: application/json" \
   -d '{
     "jobId": "ABC-1234"

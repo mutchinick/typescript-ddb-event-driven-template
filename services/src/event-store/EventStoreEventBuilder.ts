@@ -48,7 +48,7 @@ export class EventStoreEventBuilder {
       const eventDetail = incomingEvent.detail
       const unmarshalledEvent = unmarshall(eventDetail.dynamodb.NewImage) as EventStoreEvent
       const eventName = unmarshalledEvent.eventName
-      const eventClass = eventClassMap[eventName as keyof EventClassMap] as EventStoreEventConstructor
+      const eventClass = eventClassMap[eventName] as EventStoreEventConstructor
       const eventResult = eventClass.reconstitute(
         unmarshalledEvent.eventData,
         unmarshalledEvent.idempotencyKey,

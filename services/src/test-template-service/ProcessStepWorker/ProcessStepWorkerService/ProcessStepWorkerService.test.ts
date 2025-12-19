@@ -47,7 +47,10 @@ const expectedStepProcessedEvent = buildExpectedStepProcessedEvent()
  * Mock Clients
  ************************************************************/
 function buildEventStoreClient_succeeds(): IEventStoreClient {
-  return { publish: jest.fn().mockResolvedValue(Result.makeSuccess()) }
+  return {
+    publish: jest.fn().mockResolvedValue(Result.makeSuccess()),
+    getEventsByKey: jest.fn().mockResolvedValue(Result.makeSuccess([])),
+  }
 }
 
 function buildEventStoreClient_fails(
@@ -61,6 +64,7 @@ function buildEventStoreClient_fails(
       .mockResolvedValue(
         Result.makeFailure(failureKind ?? 'UnrecognizedError', error ?? 'UnrecognizedError', transient ?? false),
       ),
+    getEventsByKey: jest.fn().mockResolvedValue(Result.makeSuccess([])),
   }
 }
 

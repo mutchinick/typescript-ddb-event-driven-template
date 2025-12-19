@@ -25,7 +25,10 @@ const mockIncomingRequest = buildMockIncomingRequest()
  ************************************************************/
 function buildMockEventStoreClient_succeeds(value?: unknown): IEventStoreClient {
   const mockResult = Result.makeSuccess(value)
-  return { publish: jest.fn().mockResolvedValue(mockResult) }
+  return {
+    publish: jest.fn().mockResolvedValue(mockResult),
+    getEventsByKey: jest.fn().mockResolvedValue(Result.makeSuccess([])),
+  }
 }
 
 function buildMockEventStoreClient_fails(
@@ -38,7 +41,10 @@ function buildMockEventStoreClient_fails(
     error ?? 'UnrecognizedError',
     transient ?? true,
   )
-  return { publish: jest.fn().mockResolvedValue(mockFailure) }
+  return {
+    publish: jest.fn().mockResolvedValue(mockFailure),
+    getEventsByKey: jest.fn().mockResolvedValue(Result.makeSuccess([])),
+  }
 }
 
 describe(`Test Template Service CreateJobApi CreateJobApiService tests`, () => {

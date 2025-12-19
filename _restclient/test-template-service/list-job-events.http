@@ -1,0 +1,27 @@
+@baseUrl = {{$dotenv TEST_TEMPLATE_SERVICE_API_BASE_URL}}
+
+### LIST_JOB_EVENTS
+### POST ###
+POST {{baseUrl}}/api/v1/test-template-service/listJobEvents
+Origin: https://localhost
+Content-Type: application/json
+
+{
+  "jobId": "ABC-1234"
+}
+
+### LIST_JOB_EVENTS
+### POST ###
+POST {{baseUrl}}/api/v1/test-template-service/listJobEvents
+Origin: https://localhost
+Content-Type: application/json
+
+{
+  "jobId": "XYZ-5678"
+}
+
+### CORS QUERY
+### OPTIONS ###
+OPTIONS {{baseUrl}}/api/v1/test-template-service/listJobEvents
+Origin: https://localhost
+Access-Control-Request-Method: POST

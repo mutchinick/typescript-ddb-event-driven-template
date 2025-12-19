@@ -1,0 +1,21 @@
+@baseUrl = {{$dotenv TEST_TEMPLATE_SERVICE_API_BASE_URL}}
+@randomJobId = QWE-{{$randomInt 1000 9999}}
+
+### CREATE_JOB
+# @name createJobRequest
+POST {{baseUrl}}/api/v1/test-template-service/createJob
+Origin: https://localhost
+Content-Type: application/json
+
+{
+  "jobId": "{{randomJobId}}"
+}
+
+### LIST_JOB_EVENTS - Initial Check
+POST {{baseUrl}}/api/v1/test-template-service/listJobEvents
+Origin: https://localhost
+Content-Type: application/json
+
+{
+  "jobId": "{{createJobRequest.response.body.$.jobId}}"
+}

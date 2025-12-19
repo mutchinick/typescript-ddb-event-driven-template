@@ -7,7 +7,7 @@ jest.useFakeTimers().setSystemTime(new Date('2024-10-19T03:24:00Z'))
 const mockDate = new Date().toISOString()
 const mockJobId = 'mockJobId'
 const mockCreated = true
-const mockIdempotencyKey = `jobId:${mockJobId}:created:${mockCreated}`
+const mockIdempotencyKey = `jobId:${mockJobId}`
 
 function buildTestInputData(): JobCreatedEventData {
   return {

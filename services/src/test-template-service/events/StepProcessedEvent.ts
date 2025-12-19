@@ -56,7 +56,7 @@ export class StepProcessedEvent extends EventStoreEvent<StepProcessedEventData> 
    *
    */
   private static generateIdempotencyKey(eventData: StepProcessedEventData): string {
-    return `jobId:${eventData.jobId}:processed:${eventData.processed}`
+    return `jobId:${eventData.jobId}`
   }
 
   /**

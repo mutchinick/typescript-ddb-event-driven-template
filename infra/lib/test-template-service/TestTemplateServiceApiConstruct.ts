@@ -16,7 +16,7 @@ export class TestTemplateServiceApiConstruct extends Construct {
    */
   constructor(scope: Construct, id: string) {
     super(scope, id)
-    this.httpApi = this.createTestTemplateServiceApiHttpApi(scope, id)
+    this.httpApi = this.createTestTemplateServiceApiHttpApi(this, id)
   }
 
   /**

@@ -360,7 +360,7 @@ describe(`Test Template Service ProcessStepWorker ProcessStepWorkerController te
     jest.spyOn(EventStoreEventBuilder, 'fromEventBridge').mockImplementationOnce(() => {
       class UnknownEvent extends EventStoreEvent {
         static create(): EventStoreEvent {
-          return new UnknownEvent('UNKNOWN_EVENT', {}, mockIdempotencyKey, mockDate)
+          return new UnknownEvent('UNKNOWN_EVENT' as never, {}, mockIdempotencyKey, mockDate)
         }
       }
       return Result.makeSuccess(UnknownEvent.create())
@@ -384,7 +384,7 @@ describe(`Test Template Service ProcessStepWorker ProcessStepWorkerController te
     jest.spyOn(EventStoreEventBuilder, 'fromEventBridge').mockImplementationOnce(() => {
       class UnknownEvent extends EventStoreEvent {
         static create(): EventStoreEvent {
-          return new UnknownEvent('UNKNOWN_EVENT', {}, mockIdempotencyKey, mockDate)
+          return new UnknownEvent('UNKNOWN_EVENT' as never, {}, mockIdempotencyKey, mockDate)
         }
       }
       return Result.makeSuccess(UnknownEvent.create())

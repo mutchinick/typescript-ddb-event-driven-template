@@ -1,7 +1,7 @@
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb'
-import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb'
-import { TypeUtilsMutable } from '../shared/TypeUtils'
+import { DynamoDBDocumentClient, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb'
 import { Result } from '../errors/Result'
+import { TypeUtilsMutable } from '../shared/TypeUtils'
 import { EventStoreClient } from './EventStoreClient'
 import { EventStoreEvent } from './EventStoreEvent'
 import { EventStoreEventName } from './EventStoreEventName'
@@ -33,8 +33,8 @@ function buildMockDdbCommand(): PutCommand {
   const ddbCommand = new PutCommand({
     TableName: mockEventStoreTableName,
     Item: {
-      pk: `EVENTS#${mockEventStoreEvent.eventName}`,
-      sk: `EVENT#${mockEventStoreEvent.idempotencyKey}`,
+      pk: `EVENTS#${mockEventStoreEvent.idempotencyKey}`,
+      sk: `EVENTS#${mockEventStoreEvent.eventName}`,
       idempotencyKey: mockEventStoreEvent.idempotencyKey,
       _tn: `EVENTS#EVENT`,
       _sn: `EVENTS`,
@@ -198,5 +198,250 @@ describe(`Events EventStoreClient tests`, () => {
     const expectedResult = Result.makeSuccess()
     expect(Result.isSuccess(result)).toBe(true)
     expect(result).toStrictEqual(expectedResult)
+  })
+
+  /*
+   *
+   *
+   ************************************************************
+   * Test getEventsByKey
+   ************************************************************/
+  describe(`Test EventStoreClient.getEventsByKey`, () => {
+    const mockPk = `EVENTS#${mockEventStoreEvent.idempotencyKey}`
+
+    function buildMockQueryCommand(): QueryCommand {
+      const queryCommand = new QueryCommand({
+        TableName: mockEventStoreTableName,
+        KeyConditionExpression: 'pk = :pk',
+        ExpressionAttributeValues: {
+          ':pk': mockPk,
+        },
+      })
+      return queryCommand
+    }
+
+    const expectedQueryCommand = buildMockQueryCommand()
+
+    function buildMockDdbDocClient_resolvesWithItems(items: unknown[]): DynamoDBDocumentClient {
+      return {
+        send: jest.fn().mockResolvedValue({
+          Items: items,
+        }),
+      } as unknown as DynamoDBDocumentClient
+    }
+
+    /*
+     *
+     *
+     ************************************************************
+     * Test pk edge cases
+     ************************************************************/
+    it(`does not return a Failure if the input pk is valid`, async () => {
+      const mockDdbDocClient = buildMockDdbDocClient_resolvesWithItems([])
+      const eventStoreClient = new EventStoreClient(mockDdbDocClient)
+      const result = await eventStoreClient.getEventsByKey(mockPk)
+      expect(Result.isFailure(result)).toBe(false)
+    })
+
+    it(`returns a non-transient Failure of kind InvalidArgumentsError if the input pk is
+        undefined`, async () => {
+      const mockDdbDocClient = buildMockDdbDocClient_resolves()
+      const eventStoreClient = new EventStoreClient(mockDdbDocClient)
+      const mockTestPk = undefined as never
+      const result = await eventStoreClient.getEventsByKey(mockTestPk)
+      expect(Result.isFailure(result)).toBe(true)
+      expect(Result.isFailureOfKind(result, 'InvalidArgumentsError')).toBe(true)
+      expect(Result.isFailureTransient(result)).toBe(false)
+    })
+
+    it(`returns a non-transient Failure of kind InvalidArgumentsError if the input pk is
+        null`, async () => {
+      const mockDdbDocClient = buildMockDdbDocClient_resolves()
+      const eventStoreClient = new EventStoreClient(mockDdbDocClient)
+      const mockTestPk = null as never
+      const result = await eventStoreClient.getEventsByKey(mockTestPk)
+      expect(Result.isFailure(result)).toBe(true)
+      expect(Result.isFailureOfKind(result, 'InvalidArgumentsError')).toBe(true)
+      expect(Result.isFailureTransient(result)).toBe(false)
+    })
+
+    it(`returns a non-transient Failure of kind InvalidArgumentsError if the input pk is
+        empty`, async () => {
+      const mockDdbDocClient = buildMockDdbDocClient_resolves()
+      const eventStoreClient = new EventStoreClient(mockDdbDocClient)
+      const mockTestPk = ''
+      const result = await eventStoreClient.getEventsByKey(mockTestPk)
+      expect(Result.isFailure(result)).toBe(true)
+      expect(Result.isFailureOfKind(result, 'InvalidArgumentsError')).toBe(true)
+      expect(Result.isFailureTransient(result)).toBe(false)
+    })
+
+    it(`returns a non-transient Failure of kind InvalidArgumentsError if the input pk is
+        blank`, async () => {
+      const mockDdbDocClient = buildMockDdbDocClient_resolves()
+      const eventStoreClient = new EventStoreClient(mockDdbDocClient)
+      const mockTestPk = '      '
+      const result = await eventStoreClient.getEventsByKey(mockTestPk)
+      expect(Result.isFailure(result)).toBe(true)
+      expect(Result.isFailureOfKind(result, 'InvalidArgumentsError')).toBe(true)
+      expect(Result.isFailureTransient(result)).toBe(false)
+    })
+
+    it(`returns a non-transient Failure of kind InvalidArgumentsError if the input pk is
+        not a string`, async () => {
+      const mockDdbDocClient = buildMockDdbDocClient_resolves()
+      const eventStoreClient = new EventStoreClient(mockDdbDocClient)
+      const mockTestPk = 123 as never
+      const result = await eventStoreClient.getEventsByKey(mockTestPk)
+      expect(Result.isFailure(result)).toBe(true)
+      expect(Result.isFailureOfKind(result, 'InvalidArgumentsError')).toBe(true)
+      expect(Result.isFailureTransient(result)).toBe(false)
+    })
+
+    /*
+     *
+     *
+     ************************************************************
+     * Test internal logic
+     ************************************************************/
+    it(`calls DynamoDBDocumentClient.send a single time`, async () => {
+      const mockDdbDocClient = buildMockDdbDocClient_resolvesWithItems([])
+      const eventStoreClient = new EventStoreClient(mockDdbDocClient)
+      await eventStoreClient.getEventsByKey(mockPk)
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(mockDdbDocClient.send).toHaveBeenCalledTimes(1)
+    })
+
+    it(`calls DynamoDBDocumentClient.send with the expected input`, async () => {
+      const mockDdbDocClient = buildMockDdbDocClient_resolvesWithItems([])
+      const eventStoreClient = new EventStoreClient(mockDdbDocClient)
+      await eventStoreClient.getEventsByKey(mockPk)
+      // eslint-disable-next-line @typescript-eslint/unbound-method
+      expect(mockDdbDocClient.send).toHaveBeenCalledWith(expect.objectContaining({ input: expectedQueryCommand.input }))
+    })
+
+    it(`returns a transient Failure of kind UnrecognizedError if
+        DynamoDBDocumentClient.send throws an unrecognized Error`, async () => {
+      const mockDdbDocClient = buildMockDdbDocClient_throws()
+      const eventStoreClient = new EventStoreClient(mockDdbDocClient)
+      const result = await eventStoreClient.getEventsByKey(mockPk)
+      expect(Result.isFailure(result)).toBe(true)
+      expect(Result.isFailureOfKind(result, 'UnrecognizedError')).toBe(true)
+      expect(Result.isFailureTransient(result)).toBe(true)
+    })
+
+    /*
+     *
+     *
+     ************************************************************
+     * Test expected results
+     ************************************************************/
+    it(`returns the expected Success<EventStoreEvent[]> with empty array if no items are
+        found`, async () => {
+      const mockDdbDocClient = buildMockDdbDocClient_resolvesWithItems([])
+      const eventStoreClient = new EventStoreClient(mockDdbDocClient)
+      const result = await eventStoreClient.getEventsByKey(mockPk)
+      const expectedResult = Result.makeSuccess<EventStoreEvent[]>([])
+      expect(Result.isSuccess(result)).toBe(true)
+      expect(result).toStrictEqual(expectedResult)
+    })
+
+    it(`returns the expected Success<EventStoreEvent[]> with single event if one item is
+        found`, async () => {
+      const mockEvent = {
+        pk: mockPk,
+        sk: `EVENTS#${mockEventStoreEvent.eventName}`,
+        idempotencyKey: mockEventStoreEvent.idempotencyKey,
+        eventName: mockEventStoreEvent.eventName,
+        eventData: mockEventStoreEvent.eventData,
+        createdAt: mockEventStoreEvent.createdAt,
+      }
+      const mockDdbDocClient = buildMockDdbDocClient_resolvesWithItems([mockEvent])
+      const eventStoreClient = new EventStoreClient(mockDdbDocClient)
+      const result = await eventStoreClient.getEventsByKey(mockPk)
+
+      const expectedEvent: EventStoreEvent = {
+        idempotencyKey: mockEventStoreEvent.idempotencyKey,
+        eventName: mockEventStoreEvent.eventName,
+        eventData: mockEventStoreEvent.eventData,
+        createdAt: mockEventStoreEvent.createdAt,
+      }
+      Object.setPrototypeOf(expectedEvent, EventStoreEvent.prototype)
+      const expectedResult = Result.makeSuccess<EventStoreEvent[]>([expectedEvent])
+
+      expect(Result.isSuccess(result)).toBe(true)
+      expect(result).toStrictEqual(expectedResult)
+    })
+
+    it(`returns the expected Success<EventStoreEvent[]> with events sorted by createdAt
+        descending`, async () => {
+      const mockDate1 = '2024-10-19T01:00:00.000Z'
+      const mockDate2 = '2024-10-19T02:00:00.000Z'
+      const mockDate3 = '2024-10-19T03:00:00.000Z'
+
+      const mockEvent1 = {
+        pk: mockPk,
+        sk: `EVENTS#EVENT1`,
+        idempotencyKey: 'key1',
+        eventName: 'EVENT1',
+        eventData: { foo: 'bar1' },
+        createdAt: mockDate1,
+      }
+      const mockEvent2 = {
+        pk: mockPk,
+        sk: `EVENTS#EVENT2`,
+        idempotencyKey: 'key2',
+        eventName: 'EVENT2',
+        eventData: { foo: 'bar2' },
+        createdAt: mockDate2,
+      }
+      const mockEvent3 = {
+        pk: mockPk,
+        sk: `EVENTS#EVENT3`,
+        idempotencyKey: 'key3',
+        eventName: 'EVENT3',
+        eventData: { foo: 'bar3' },
+        createdAt: mockDate3,
+      }
+      const mockEvents = [mockEvent2, mockEvent3, mockEvent1]
+
+      const mockDdbDocClient = buildMockDdbDocClient_resolvesWithItems(mockEvents)
+      const eventStoreClient = new EventStoreClient(mockDdbDocClient)
+      const result = await eventStoreClient.getEventsByKey(mockPk)
+
+      const expectedEvent1 = Object.setPrototypeOf(
+        {
+          idempotencyKey: mockEvent1.idempotencyKey,
+          eventName: mockEvent1.eventName,
+          eventData: mockEvent1.eventData,
+          createdAt: mockEvent1.createdAt,
+        } as EventStoreEvent,
+        EventStoreEvent.prototype,
+      )
+      const expectedEvent2 = Object.setPrototypeOf(
+        {
+          idempotencyKey: mockEvent2.idempotencyKey,
+          eventName: mockEvent2.eventName,
+          eventData: mockEvent2.eventData,
+          createdAt: mockEvent2.createdAt,
+        } as EventStoreEvent,
+        EventStoreEvent.prototype,
+      )
+      const expectedEvent3 = Object.setPrototypeOf(
+        {
+          idempotencyKey: mockEvent3.idempotencyKey,
+          eventName: mockEvent3.eventName,
+          eventData: mockEvent3.eventData,
+          createdAt: mockEvent3.createdAt,
+        } as EventStoreEvent,
+        EventStoreEvent.prototype,
+      )
+
+      const mockEventClasses: EventStoreEvent[] = [expectedEvent1, expectedEvent2, expectedEvent3]
+      const expectedResult = Result.makeSuccess<EventStoreEvent[]>(mockEventClasses)
+
+      expect(Result.isSuccess(result)).toBe(true)
+      expect(result).toStrictEqual(expectedResult)
+    })
   })
 })

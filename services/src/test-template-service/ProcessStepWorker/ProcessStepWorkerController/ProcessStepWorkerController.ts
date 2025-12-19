@@ -80,13 +80,14 @@ export class ProcessStepWorkerController implements IProcessStepWorkerController
     }
 
     const incomingEvent = incomingEventResult.value
-    if (incomingEvent instanceof JobCreatedEvent === false) {
+    if (!(incomingEvent instanceof JobCreatedEvent)) {
       const message = `Expected JobCreatedEvent but got ${incomingEvent}`
       const failure = Result.makeFailure('InvalidArgumentsError', message, false)
       console.error(`${logCtx} exit failure:`, { failure, incomingEvent })
       return failure
     }
 
+    // TypeScript narrows the type after the instanceof check
     const processStepResult = await this.processStepWorkerService.processStep(incomingEvent)
     Result.isFailure(processStepResult)
       ? console.error(`${logCtx} exit failure:`, { processStepResult, incomingEvent })

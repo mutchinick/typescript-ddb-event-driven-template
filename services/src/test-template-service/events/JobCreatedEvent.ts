@@ -56,7 +56,7 @@ export class JobCreatedEvent extends EventStoreEvent<JobCreatedEventData> {
    *
    */
   private static generateIdempotencyKey(eventData: JobCreatedEventData): string {
-    return `jobId:${eventData.jobId}:created:${eventData.created}`
+    return `jobId:${eventData.jobId}`
   }
 
   /**

@@ -1,19 +1,25 @@
 import { Failure, Success } from '../errors/Result'
 import { EventStoreEventData } from './EventStoreEventData'
+import { EventStoreEventName } from './EventStoreEventName'
 
 /**
  *
  */
 export abstract class EventStoreEvent<TEventStoreData extends EventStoreEventData = EventStoreEventData> {
   public readonly idempotencyKey: string
-  public readonly eventName: string
+  public readonly eventName: EventStoreEventName
   public readonly eventData: TEventStoreData
   public readonly createdAt: string
 
   /**
    *
    */
-  protected constructor(eventName: string, eventData: TEventStoreData, idempotencyKey: string, createdAt: string) {
+  protected constructor(
+    eventName: EventStoreEventName,
+    eventData: TEventStoreData,
+    idempotencyKey: string,
+    createdAt: string,
+  ) {
     this.idempotencyKey = idempotencyKey
     this.eventName = eventName
     this.eventData = eventData

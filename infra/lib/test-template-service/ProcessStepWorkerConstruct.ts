@@ -25,10 +25,10 @@ export class ProcessStepWorkerConstruct extends Construct {
    */
   constructor(scope: Construct, id: string, props: IProcessStepWorkerConstructProps) {
     super(scope, id)
-    const dlq = this.createProcessStepWorkerDlq(scope, id)
-    const queue = this.createProcessStepWorkerQueue(scope, id, dlq)
-    this.createProcessStepWorkerFunction(scope, id, props.dynamoDbTable, queue)
-    this.createProcessStepWorkerRoutingRule(scope, id, props.dynamoDbTable, props.eventBus, queue)
+    const dlq = this.createProcessStepWorkerDlq(this, id)
+    const queue = this.createProcessStepWorkerQueue(this, id, dlq)
+    this.createProcessStepWorkerFunction(this, id, props.dynamoDbTable, queue)
+    this.createProcessStepWorkerRoutingRule(this, id, props.dynamoDbTable, props.eventBus, queue)
   }
 
   /**
