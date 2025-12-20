@@ -84,7 +84,7 @@ export class CompleteAllTasksWorkerConstruct extends Construct {
       runtime: Runtime.NODEJS_20_X,
       projectRoot: servicesRoot,
       depsLockFilePath: join(servicesRoot, 'package-lock.json'),
-      entry: join(servicesRoot, 'src/test-template-service/handlers/completeAllTasksWorker.ts'),
+      entry: join(servicesRoot, 'src/test-template-service/CompleteAllTasksWorker/handler/handler.ts'),
       handler: 'handler',
       environment: {
         EVENT_STORE_TABLE_NAME: dynamoDbTable.tableName,

@@ -174,38 +174,37 @@ Basically the Event Store and the Event-Driver
 │       ├── CreateJobApi/                               # API endpoint
 │       │   ├── CreateJobApiController/
 │       │   ├── CreateJobApiService/
-│       │   └── model/
+│       │   ├── model/
+│       │   └── handler/                                # Lambda entry point
 │       ├── ListJobEventsApi/                           # API endpoint
 │       │   ├── ListJobEventsApiController/
 │       │   ├── ListJobEventsApiService/
-│       │   └── model/
+│       │   ├── model/
+│       │   └── handler/                                # Lambda entry point
 │       ├── ProcessStepWorker/                          # Event processor
 │       │   ├── ProcessStepWorkerController/
-│       │   └── ProcessStepWorkerService/
+│       │   ├── ProcessStepWorkerService/
+│       │   └── handler/                                # Lambda entry point
 │       ├── ExecuteTaskFooWorker/                       # Event processor
 │       │   ├── ExecuteTaskFooWorkerController/
-│       │   └── ExecuteTaskFooWorkerService/
+│       │   ├── ExecuteTaskFooWorkerService/
+│       │   └── handler/                                # Lambda entry point
 │       ├── ExecuteTaskQuxWorker/                       # Event processor
 │       │   ├── ExecuteTaskQuxWorkerController/
-│       │   └── ExecuteTaskQuxWorkerService/
+│       │   ├── ExecuteTaskQuxWorkerService/
+│       │   └── handler/                                # Lambda entry point
 │       ├── ExecuteTaskBarWorker/                       # Event processor
 │       │   ├── ExecuteTaskBarWorkerController/
-│       │   └── ExecuteTaskBarWorkerService/
+│       │   ├── ExecuteTaskBarWorkerService/
+│       │   └── handler/                                # Lambda entry point
 │       ├── CompleteAllTasksWorker/                     # Event processor
 │       │   ├── CompleteAllTasksWorkerController/
-│       │   └── CompleteAllTasksWorkerService/
-│       ├── FinalizeJobWorker/                          # Event processor
-│       │   ├── FinalizeJobWorkerController/
-│       │   └── FinalizeJobWorkerService/
-│       └── handlers/                                   # Lambda entry points
-│           ├── createJobApi.ts
-│           ├── listJobEventsApi.ts
-│           ├── processStepWorker.ts
-│           ├── executeTaskFooWorker.ts
-│           ├── executeTaskQuxWorker.ts
-│           ├── executeTaskBarWorker.ts
-│           ├── completeAllTasksWorker.ts
-│           └── finalizeJobWorker.ts
+│       │   ├── CompleteAllTasksWorkerService/
+│       │   └── handler/                                # Lambda entry point
+│       └── FinalizeJobWorker/                          # Event processor
+│           ├── FinalizeJobWorkerController/
+│           ├── FinalizeJobWorkerService/
+│           └── handler/                                # Lambda entry point
 ├── infra/lib/
 │   ├── common/                                         # Shared infrastructure
 │   │   ├── DynamoDbConstruct.ts                        # Event store table
@@ -335,7 +334,7 @@ export class CancelJobApiService {
 
 #### Create API Handler
 
-Add handler in `services/src/<service-name>/handlers/`
+Add handler in `services/src/<service-name>/CancelJobApi/handler/handler.ts`:
 
 ```typescript
 // createHandler
@@ -349,7 +348,7 @@ function createHandler(): (
 export const handler = createHandler();
 ```
 
-> **Reference:** [createJobApi.ts](services/src/test-template-service/handlers/createJobApi.ts)
+> **Reference:** [CreateJobApi/handler/handler.ts](services/src/test-template-service/CreateJobApi/handler/handler.ts)
 
 #### Add API Infrastructure
 
@@ -400,7 +399,7 @@ export class CancelJobWorkerService {
 
 #### Create Worker Handler
 
-Add handler in `services/src/<service-name>/handlers/cancelJobWorker.ts`:
+Add handler in `services/src/<service-name>/CancelJobWorker/handler/handler.ts`:
 
 ```typescript
 // createHandler
@@ -411,7 +410,7 @@ function createHandler(): (sqsEvent: SQSEvent) => Promise<SQSBatchResponse> {
 export const handler = createHandler();
 ```
 
-> **Reference:** [processStepWorker.ts](services/src/test-template-service/handlers/processStepWorker.ts)
+> **Reference:** [ProcessStepWorker/handler/handler.ts](services/src/test-template-service/ProcessStepWorker/handler/handler.ts)
 
 #### Add Worker Infrastructure
 

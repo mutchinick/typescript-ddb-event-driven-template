@@ -84,7 +84,7 @@ export class ExecuteTaskFooWorkerConstruct extends Construct {
       runtime: Runtime.NODEJS_20_X,
       projectRoot: servicesRoot,
       depsLockFilePath: join(servicesRoot, 'package-lock.json'),
-      entry: join(servicesRoot, 'src/test-template-service/handlers/executeTaskFooWorker.ts'),
+      entry: join(servicesRoot, 'src/test-template-service/ExecuteTaskFooWorker/handler/handler.ts'),
       handler: 'handler',
       environment: {
         EVENT_STORE_TABLE_NAME: dynamoDbTable.tableName,

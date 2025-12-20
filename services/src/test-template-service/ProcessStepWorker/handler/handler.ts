@@ -1,9 +1,9 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
 import { SQSBatchResponse, SQSEvent } from 'aws-lambda'
-import { EventStoreClient } from '../../event-store/EventStoreClient'
-import { ProcessStepWorkerController } from '../ProcessStepWorker/ProcessStepWorkerController/ProcessStepWorkerController'
-import { ProcessStepWorkerService } from '../ProcessStepWorker/ProcessStepWorkerService/ProcessStepWorkerService'
+import { EventStoreClient } from '../../../event-store/EventStoreClient'
+import { ProcessStepWorkerController } from '../ProcessStepWorkerController/ProcessStepWorkerController'
+import { ProcessStepWorkerService } from '../ProcessStepWorkerService/ProcessStepWorkerService'
 
 /**
  *

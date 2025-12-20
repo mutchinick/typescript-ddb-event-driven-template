@@ -84,7 +84,7 @@ export class FinalizeJobWorkerConstruct extends Construct {
       runtime: Runtime.NODEJS_20_X,
       projectRoot: servicesRoot,
       depsLockFilePath: join(servicesRoot, 'package-lock.json'),
-      entry: join(servicesRoot, 'src/test-template-service/handlers/finalizeJobWorker.ts'),
+      entry: join(servicesRoot, 'src/test-template-service/FinalizeJobWorker/handler/handler.ts'),
       handler: 'handler',
       environment: {
         EVENT_STORE_TABLE_NAME: dynamoDbTable.tableName,

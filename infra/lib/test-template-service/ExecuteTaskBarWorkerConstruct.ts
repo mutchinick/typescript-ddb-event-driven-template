@@ -84,7 +84,7 @@ export class ExecuteTaskBarWorkerConstruct extends Construct {
       runtime: Runtime.NODEJS_20_X,
       projectRoot: servicesRoot,
       depsLockFilePath: join(servicesRoot, 'package-lock.json'),
-      entry: join(servicesRoot, 'src/test-template-service/handlers/executeTaskBarWorker.ts'),
+      entry: join(servicesRoot, 'src/test-template-service/ExecuteTaskBarWorker/handler/handler.ts'),
       handler: 'handler',
       environment: {
         EVENT_STORE_TABLE_NAME: dynamoDbTable.tableName,

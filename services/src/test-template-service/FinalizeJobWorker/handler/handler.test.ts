@@ -1,7 +1,7 @@
-import { handler } from './processStepWorker'
+import { handler } from './handler'
 
 // COMBAK: Can mock clients to assert the Controller is built as expected
-describe(`Test Template Service handlers processStepWorker tests`, () => {
+describe(`Test Template Service handlers finalizeJobWorker tests`, () => {
   it(`exports the handler function`, () => {
     expect(typeof handler).toBe('function')
   })

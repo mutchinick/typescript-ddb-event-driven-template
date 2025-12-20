@@ -1,9 +1,9 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
 import { SQSBatchResponse, SQSEvent } from 'aws-lambda'
-import { EventStoreClient } from '../../event-store/EventStoreClient'
-import { ExecuteTaskBarWorkerController } from '../ExecuteTaskBarWorker/ExecuteTaskBarWorkerController/ExecuteTaskBarWorkerController'
-import { ExecuteTaskBarWorkerService } from '../ExecuteTaskBarWorker/ExecuteTaskBarWorkerService/ExecuteTaskBarWorkerService'
+import { EventStoreClient } from '../../../event-store/EventStoreClient'
+import { ExecuteTaskBarWorkerController } from '../ExecuteTaskBarWorkerController/ExecuteTaskBarWorkerController'
+import { ExecuteTaskBarWorkerService } from '../ExecuteTaskBarWorkerService/ExecuteTaskBarWorkerService'
 
 /**
  *

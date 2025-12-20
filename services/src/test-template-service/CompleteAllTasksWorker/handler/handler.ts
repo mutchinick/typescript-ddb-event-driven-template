@@ -1,9 +1,9 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
 import { SQSBatchResponse, SQSEvent } from 'aws-lambda'
-import { EventStoreClient } from '../../event-store/EventStoreClient'
-import { CompleteAllTasksWorkerController } from '../CompleteAllTasksWorker/CompleteAllTasksWorkerController/CompleteAllTasksWorkerController'
-import { CompleteAllTasksWorkerService } from '../CompleteAllTasksWorker/CompleteAllTasksWorkerService/CompleteAllTasksWorkerService'
+import { EventStoreClient } from '../../../event-store/EventStoreClient'
+import { CompleteAllTasksWorkerController } from '../CompleteAllTasksWorkerController/CompleteAllTasksWorkerController'
+import { CompleteAllTasksWorkerService } from '../CompleteAllTasksWorkerService/CompleteAllTasksWorkerService'
 
 /**
  *

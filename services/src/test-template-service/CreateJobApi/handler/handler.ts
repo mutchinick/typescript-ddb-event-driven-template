@@ -1,9 +1,9 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from 'aws-lambda'
-import { EventStoreClient } from '../../event-store/EventStoreClient'
-import { CreateJobApiController } from '../CreateJobApi/CreateJobApiController/CreateJobApiController'
-import { CreateJobApiService } from '../CreateJobApi/CreateJobApiService/CreateJobApiService'
+import { EventStoreClient } from '../../../event-store/EventStoreClient'
+import { CreateJobApiController } from '../CreateJobApiController/CreateJobApiController'
+import { CreateJobApiService } from '../CreateJobApiService/CreateJobApiService'
 
 /**
  *

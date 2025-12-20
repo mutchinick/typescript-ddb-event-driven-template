@@ -1,9 +1,9 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
 import { SQSBatchResponse, SQSEvent } from 'aws-lambda'
-import { EventStoreClient } from '../../event-store/EventStoreClient'
-import { FinalizeJobWorkerController } from '../FinalizeJobWorker/FinalizeJobWorkerController/FinalizeJobWorkerController'
-import { FinalizeJobWorkerService } from '../FinalizeJobWorker/FinalizeJobWorkerService/FinalizeJobWorkerService'
+import { EventStoreClient } from '../../../event-store/EventStoreClient'
+import { FinalizeJobWorkerController } from '../FinalizeJobWorkerController/FinalizeJobWorkerController'
+import { FinalizeJobWorkerService } from '../FinalizeJobWorkerService/FinalizeJobWorkerService'
 
 /**
  *

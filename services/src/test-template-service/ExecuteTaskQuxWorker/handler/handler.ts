@@ -1,9 +1,9 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb'
 import { SQSBatchResponse, SQSEvent } from 'aws-lambda'
-import { EventStoreClient } from '../../event-store/EventStoreClient'
-import { ExecuteTaskQuxWorkerController } from '../ExecuteTaskQuxWorker/ExecuteTaskQuxWorkerController/ExecuteTaskQuxWorkerController'
-import { ExecuteTaskQuxWorkerService } from '../ExecuteTaskQuxWorker/ExecuteTaskQuxWorkerService/ExecuteTaskQuxWorkerService'
+import { EventStoreClient } from '../../../event-store/EventStoreClient'
+import { ExecuteTaskQuxWorkerController } from '../ExecuteTaskQuxWorkerController/ExecuteTaskQuxWorkerController'
+import { ExecuteTaskQuxWorkerService } from '../ExecuteTaskQuxWorkerService/ExecuteTaskQuxWorkerService'
 
 /**
  *

@@ -212,17 +212,61 @@ services/src/
     │
     ├── FinalizeJobWorker/           # Worker Vertical Slice
     │   ├── FinalizeJobWorkerController/
-    │   └── FinalizeJobWorkerService/
+    │   ├── FinalizeJobWorkerService/
+    │   └── handler/                  # Lambda entry point
+    │       ├── handler.ts
+    │       └── handler.test.ts
     │
-    └── handlers/                   # Lambda entry points
-        ├── createJobApi.ts         # API handler
-        ├── listJobEventsApi.ts     # API handler
-        ├── processStepWorker.ts     # Worker handler
-        ├── executeTaskFooWorker.ts
-        ├── executeTaskQuxWorker.ts
-        ├── executeTaskBarWorker.ts
-        ├── completeAllTasksWorker.ts
-        └── finalizeJobWorker.ts
+    ├── CreateJobApi/                 # API Vertical Slice
+    │   ├── CreateJobApiController/
+    │   ├── CreateJobApiService/
+    │   ├── model/
+    │   └── handler/                  # Lambda entry point
+    │       ├── handler.ts
+    │       └── handler.test.ts
+    │
+    ├── ListJobEventsApi/             # API Vertical Slice
+    │   ├── ListJobEventsApiController/
+    │   ├── ListJobEventsApiService/
+    │   ├── model/
+    │   └── handler/                  # Lambda entry point
+    │       ├── handler.ts
+    │       └── handler.test.ts
+    │
+    ├── ProcessStepWorker/            # Worker Vertical Slice
+    │   ├── ProcessStepWorkerController/
+    │   ├── ProcessStepWorkerService/
+    │   └── handler/                  # Lambda entry point
+    │       ├── handler.ts
+    │       └── handler.test.ts
+    │
+    ├── ExecuteTaskFooWorker/          # Worker Vertical Slice
+    │   ├── ExecuteTaskFooWorkerController/
+    │   ├── ExecuteTaskFooWorkerService/
+    │   └── handler/                  # Lambda entry point
+    │       ├── handler.ts
+    │       └── handler.test.ts
+    │
+    ├── ExecuteTaskQuxWorker/          # Worker Vertical Slice
+    │   ├── ExecuteTaskQuxWorkerController/
+    │   ├── ExecuteTaskQuxWorkerService/
+    │   └── handler/                  # Lambda entry point
+    │       ├── handler.ts
+    │       └── handler.test.ts
+    │
+    ├── ExecuteTaskBarWorker/          # Worker Vertical Slice
+    │   ├── ExecuteTaskBarWorkerController/
+    │   ├── ExecuteTaskBarWorkerService/
+    │   └── handler/                  # Lambda entry point
+    │       ├── handler.ts
+    │       └── handler.test.ts
+    │
+    └── CompleteAllTasksWorker/        # Worker Vertical Slice
+        ├── CompleteAllTasksWorkerController/
+        ├── CompleteAllTasksWorkerService/
+        └── handler/                  # Lambda entry point
+            ├── handler.ts
+            └── handler.test.ts
 ```
 
 ### Infrastructure Directory (`infra/lib/`)
@@ -270,7 +314,7 @@ infra/lib/
 
 ```typescript
 // Handler (entry point)
-createJobApi.ts
+CreateJobApi/handler/handler.ts
   └─> CreateJobApiController.createJob()
       └─> CreateJobApiService.createJob()
           └─> EventStoreClient.publish(JobCreatedEvent)
@@ -299,7 +343,7 @@ createJobApi.ts
 
 ```typescript
 // Handler (entry point)
-processStepWorker.ts
+ProcessStepWorker/handler/handler.ts
   └─> ProcessStepWorkerController.processSteps()
       └─> EventStoreEventBuilder.fromEventBridge()  // Reconstitute event
           └─> ProcessStepWorkerService.processStep()
@@ -526,7 +570,7 @@ MainStack (Root)
 ```typescript
 // infra/lib/test-template-service/CreateJobApiLambdaConstruct.ts
 new NodejsFunction({
-  entry: "services/src/test-template-service/handlers/createJobApi.ts",
+  entry: "services/src/test-template-service/CreateJobApi/handler/handler.ts",
   handler: "handler",
   environment: {
     EVENT_STORE_TABLE_NAME: dynamoDbTable.tableName,
@@ -548,7 +592,8 @@ httpApi.addRoutes({
 ```typescript
 // infra/lib/test-template-service/ProcessStepWorkerConstruct.ts
 new NodejsFunction({
-  entry: "services/src/test-template-service/handlers/processStepWorker.ts",
+  entry:
+    "services/src/test-template-service/ProcessStepWorker/handler/handler.ts",
   handler: "handler",
   environment: {
     EVENT_STORE_TABLE_NAME: dynamoDbTable.tableName,
@@ -750,7 +795,7 @@ private async executeDdbGetUserId(input: Input): Promise<Result<Output>> {
    { "jobId": "ABC-123" }
    ```
 
-2. **API Handler** (`createJobApi.ts`):
+2. **API Handler** (`CreateJobApi/handler/handler.ts`):
 
    - Creates Controller → Service → EventStoreClient chain
    - Calls `controller.createJob(apiEvent)`
@@ -800,7 +845,7 @@ private async executeDdbGetUserId(input: Input): Promise<Result<Output>> {
    - Receives message with EventBridge event payload
    - Lambda polls queue (batch of up to 10 messages)
 
-10. **Worker Handler** (`processStepWorker.ts`):
+10. **Worker Handler** (`ProcessStepWorker/handler/handler.ts`):
 
     - Creates Controller → Service → EventStoreClient chain
     - Calls `controller.processSteps(sqsEvent)`
@@ -1715,7 +1760,7 @@ export class DoSomethingApiService implements IDoSomethingApiService {
 ### Wiring Clients in Handlers
 
 ```typescript
-// handlers/doSomethingApi.ts
+// DoSomethingApi/handler/handler.ts
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import {
@@ -1795,7 +1840,7 @@ export const handler = createHandler();
 2. **Controller/Service separation**: Separate folders for each layer
 3. **Models co-located**: Models live in the slice they belong to
 4. **Events shared**: Events live in `events/` folder at service level
-5. **Handlers at service root**: All handlers in `handlers/` folder
+5. **Handlers co-located**: Each handler lives in its slice folder as `handler/handler.ts`
 
 ### Import Organization
 
@@ -2274,7 +2319,7 @@ export class CancelJobApiLambdaConstruct extends Construct {
       depsLockFilePath: join(servicesRoot, "package-lock.json"),
       entry: join(
         servicesRoot,
-        "src/test-template-service/handlers/cancelJobApi.ts"
+        "src/test-template-service/CancelJobApi/handler/handler.ts"
       ),
       handler: "handler",
       environment: {
@@ -2349,7 +2394,7 @@ export class CancelJobWorkerConstruct extends Construct {
       depsLockFilePath: join(servicesRoot, "package-lock.json"),
       entry: join(
         servicesRoot,
-        "src/test-template-service/handlers/cancelJobWorker.ts"
+        "src/test-template-service/CancelJobWorker/handler/handler.ts"
       ),
       handler: "handler",
       environment: {
@@ -2740,8 +2785,8 @@ When implementing features, reference these existing files:
 - **API Service**: `services/src/test-template-service/CreateJobApi/CreateJobApiService/CreateJobApiService.ts`
 - **Worker Controller**: `services/src/test-template-service/ProcessStepWorker/ProcessStepWorkerController/ProcessStepWorkerController.ts`
 - **Worker Service**: `services/src/test-template-service/ProcessStepWorker/ProcessStepWorkerService/ProcessStepWorkerService.ts`
-- **API Handler**: `services/src/test-template-service/handlers/createJobApi.ts`
-- **Worker Handler**: `services/src/test-template-service/handlers/processStepWorker.ts`
+- **API Handler**: `services/src/test-template-service/CreateJobApi/handler/handler.ts`
+- **Worker Handler**: `services/src/test-template-service/ProcessStepWorker/handler/handler.ts`
 - **API Infrastructure**: `infra/lib/test-template-service/CreateJobApiLambdaConstruct.ts`
 - **Worker Infrastructure**: `infra/lib/test-template-service/ProcessStepWorkerConstruct.ts`
 

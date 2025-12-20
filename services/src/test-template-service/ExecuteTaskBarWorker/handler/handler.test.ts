@@ -1,4 +1,4 @@
-import { handler } from './executeTaskBarWorker'
+import { handler } from './handler'
 
 describe(`Test Template Service handlers executeTaskBarWorker tests`, () => {
   it(`exports the handler function`, () => {
