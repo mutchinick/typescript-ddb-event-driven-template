@@ -369,7 +369,7 @@ Each feature is organized as a **self-contained vertical slice** containing:
 - **Controller**: Handles AWS-specific input/output (API Gateway events, SQS events)
 - **Service**: Contains business logic (domain rules, orchestration)
 - **Clients**: External dependencies (EventStoreClient, database clients, etc.)
-- **Models**: Request/response/data structures owned by the slice
+- **Models**: Request/response/data structures owned by the slice (can exist in APIs, Workers, or any slice that needs them)
 
 ### Controller Layer
 
@@ -1251,9 +1251,11 @@ export class CancelJobApiService implements ICancelJobApiService {
 
 **Responsibilities**:
 
-- Validate incoming request data
+- Validate incoming request data (for APIs) or internal data structures (for Workers)
 - Use Zod for schema validation
-- Provide type-safe request object
+- Provide type-safe request/data objects
+
+**Note**: Models are not exclusive to APIs. Workers can also have `model/` folders when they need to define and validate data structures specific to that worker slice.
 
 **Template**:
 
@@ -1336,9 +1338,16 @@ export const handler = createHandler();
 <ServiceName>Worker/
 ├── <ServiceName>WorkerController/
 │   └── <ServiceName>WorkerController.ts
-└── <ServiceName>WorkerService/
-    └── <ServiceName>WorkerService.ts
+├── <ServiceName>WorkerService/
+│   └── <ServiceName>WorkerService.ts
+├── model/                    # Optional: Models for this worker
+│   └── <ModelName>.ts
+└── handler/
+    ├── handler.ts
+    └── handler.test.ts
 ```
+
+**Note**: The `model/` folder is optional and should be added when the worker needs its own data structures or validation models.
 
 ### Worker Controller Guidelines
 
@@ -1838,9 +1847,11 @@ export const handler = createHandler();
 
 1. **One feature per folder**: Each API/Worker gets its own folder
 2. **Controller/Service separation**: Separate folders for each layer
-3. **Models co-located**: Models live in the slice they belong to
+3. **Models co-located**: Models live in the slice they belong to (APIs, Workers, or any slice that needs them)
 4. **Events shared**: Events live in `events/` folder at service level
 5. **Handlers co-located**: Each handler lives in its slice folder as `handler/handler.ts`
+
+**Note on Models**: While the current examples show `model/` folders primarily in API slices, models can exist in any slice type (APIs, Workers, etc.) when needed. Additionally, service-level or project-level models may be created in the future, but are not part of the current structure.
 
 ### Import Organization
 

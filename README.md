@@ -304,7 +304,7 @@ Create in `services/src/<service-name>/CancelJobApi/`
 
 - **Controller**: Handle API Gateway requests, validate input, call service
 - **Service**: Business logic, publish `JobCancelledEvent` using `EventStoreClient`
-- **Models**: Request/response objects owned by this slice
+- **Models**: Request/response objects owned by this slice (note: models can also exist in Worker slices when needed)
 - **Clients**: Custom clients as required (for publishing only events usually shared `EventStoreClient` is sufficient)
 
 > **Reference:** [CreateJobApi folder](services/src/test-template-service/CreateJobApi/)
