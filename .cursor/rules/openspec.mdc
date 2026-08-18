@@ -1,0 +1,5 @@
+---
+description: OpenSpec architecture and folder hierarchy rules
+globs: openspec/**
+---
+Always follow the standards and directory structure documented in `openspec/INSTRUCTIONS.md`.
