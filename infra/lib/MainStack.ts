@@ -4,6 +4,7 @@ import { EventBus } from 'aws-cdk-lib/aws-events'
 import { Construct } from 'constructs'
 import { DynamoDbConstruct } from './common/DynamoDbConstruct'
 import { EventBusConstruct } from './common/EventBusConstruct'
+import { EcommerceServiceMainConstruct } from './ecommerce-service/EcommerceServiceMainConstruct'
 import { featureFlags } from './feature-flags'
 import { TestTemplateServiceMainConstruct } from './test-template-service/TestTemplateServiceMainConstruct'
 
@@ -29,6 +30,14 @@ export class MainStack extends cdk.Stack {
     // TestTemplateService
     if (featureFlags.DEPLOY_TEST_TEMPLATE_SERVICE) {
       new TestTemplateServiceMainConstruct(this, `${id}-TestTemplateService`, {
+        dynamoDbTable,
+        eventBus,
+      })
+    }
+
+    // EcommerceService
+    if (featureFlags.DEPLOY_ECOMMERCE_SERVICE) {
+      new EcommerceServiceMainConstruct(this, `${id}-EcommerceService`, {
         dynamoDbTable,
         eventBus,
       })

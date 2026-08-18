@@ -172,13 +172,27 @@ function writeOutputsToEnvFiles(outputsFilePath: string, deploymentPrefix: strin
         },
       ],
     },
-    // Services  - Test Template Service
+    // Rest Client - Ecommerce Service
+    {
+      envFilePath: '../_restclient/ecommerce-service/.env',
+      envVariables: [
+        {
+          cdkOutputName: `${outputPrefix}EcommerceServiceApiHttpApiUrl`,
+          envVarName: 'ECOMMERCE_SERVICE_API_BASE_URL',
+        },
+      ],
+    },
+    // Services
     {
       envFilePath: '../services/.env',
       envVariables: [
         {
           cdkOutputName: `${outputPrefix}TestTemplateServiceApiHttpApiUrl`,
           envVarName: 'TEST_TEMPLATE_SERVICE_API_BASE_URL',
+        },
+        {
+          cdkOutputName: `${outputPrefix}EcommerceServiceApiHttpApiUrl`,
+          envVarName: 'ECOMMERCE_SERVICE_API_BASE_URL',
         },
       ],
     },

@@ -1,0 +1,105 @@
+@baseUrl = {{$dotenv ECOMMERCE_SERVICE_API_BASE_URL}}
+@randomOrderId = ORD-{{$randomInt 1000 9999}}
+@randomCustomerId = CUS-{{$randomInt 1000 9999}}
+
+### ORDER_PLACED_EVENT
+### POST ###
+POST {{baseUrl}}/api/v1/ecommerce-service/placeOrder
+Origin: https://localhost
+Content-Type: application/json
+
+{
+  "orderId": "ORD-1234",
+  "customerId": "CUS-1234",
+  "currency": "USD",
+  "items": [
+    {
+      "productId": "PRD-1001",
+      "quantity": 2,
+      "unitPrice": 19.99
+    },
+    {
+      "productId": "PRD-2002",
+      "quantity": 1,
+      "unitPrice": 49.5
+    }
+  ]
+}
+
+### IDEMPOTENCY CHECK
+### Re-run this request after the first ORD-1234 request.
+### It should be treated as idempotent success and not create a second ORDER_PLACED_EVENT.
+### POST ###
+POST {{baseUrl}}/api/v1/ecommerce-service/placeOrder
+Origin: https://localhost
+Content-Type: application/json
+
+{
+  "orderId": "ORD-1234",
+  "customerId": "CUS-1234",
+  "currency": "USD",
+  "items": [
+    {
+      "productId": "PRD-1001",
+      "quantity": 2,
+      "unitPrice": 19.99
+    }
+  ]
+}
+
+### RANDOM ORDER_PLACED_EVENT
+### POST ###
+POST {{baseUrl}}/api/v1/ecommerce-service/placeOrder
+Origin: https://localhost
+Content-Type: application/json
+
+{
+  "orderId": "{{randomOrderId}}",
+  "customerId": "{{randomCustomerId}}",
+  "currency": "USD",
+  "items": [
+    {
+      "productId": "PRD-{{$randomInt 1000 9999}}",
+      "quantity": 1,
+      "unitPrice": 24.99
+    }
+  ]
+}
+
+### INVALID - LOWERCASE CURRENCY
+### POST ###
+POST {{baseUrl}}/api/v1/ecommerce-service/placeOrder
+Origin: https://localhost
+Content-Type: application/json
+
+{
+  "orderId": "ORD-5678",
+  "customerId": "CUS-5678",
+  "currency": "usd",
+  "items": [
+    {
+      "productId": "PRD-3003",
+      "quantity": 1,
+      "unitPrice": 12.25
+    }
+  ]
+}
+
+### INVALID - EMPTY ITEMS
+### POST ###
+POST {{baseUrl}}/api/v1/ecommerce-service/placeOrder
+Origin: https://localhost
+Content-Type: application/json
+
+{
+  "orderId": "ORD-9012",
+  "customerId": "CUS-9012",
+  "currency": "USD",
+  "items": []
+}
+
+### CORS QUERY
+### OPTIONS ###
+OPTIONS {{baseUrl}}/api/v1/ecommerce-service/placeOrder
+Origin: https://localhost
+Access-Control-Request-Method: POST
