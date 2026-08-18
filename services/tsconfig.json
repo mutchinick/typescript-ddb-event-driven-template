@@ -21,7 +21,8 @@
     "inlineSources": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
-    "typeRoots": ["./node_modules/@types"]
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["jest", "node"]
   },
   "include": ["src", "scripts"],
   "exclude": ["node_modules", "cdk.out"]

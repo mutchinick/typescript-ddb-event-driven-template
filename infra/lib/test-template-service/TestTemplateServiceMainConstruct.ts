@@ -9,6 +9,7 @@ import { ExecuteTaskBarWorkerConstruct } from './ExecuteTaskBarWorkerConstruct'
 import { FinalizeJobWorkerConstruct } from './FinalizeJobWorkerConstruct'
 import { ListJobEventsApiLambdaConstruct } from './ListJobEventsApiLambdaConstruct'
 import { ProcessStepWorkerConstruct } from './ProcessStepWorkerConstruct'
+import { RecordFinalizedJobWorkerConstruct } from './RecordFinalizedJobWorkerConstruct'
 import { TestTemplateServiceApiConstruct } from './TestTemplateServiceApiConstruct'
 
 export interface ITestTemplateServiceMainConstructProps {
@@ -66,6 +67,11 @@ export class TestTemplateServiceMainConstruct extends Construct {
     })
 
     new FinalizeJobWorkerConstruct(this, `${id}-FinalizeJobWorker`, {
+      dynamoDbTable: props.dynamoDbTable,
+      eventBus: props.eventBus,
+    })
+
+    new RecordFinalizedJobWorkerConstruct(this, `${id}-RecordFinalizedJobWorker`, {
       dynamoDbTable: props.dynamoDbTable,
       eventBus: props.eventBus,
     })
